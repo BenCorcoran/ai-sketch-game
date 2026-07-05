@@ -2,19 +2,20 @@
 
 import { useRef, useState, useEffect } from 'react';
 
-// A starter list of things that are fun and relatively simple to sketch
 const PROMPTS = ['Tree', 'House', 'Car', 'Apple', 'Bicycle', 'Sword', 'Cloud', 'Smile'];
 
 export default function GamePage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [hasNewDrawings, setHasNewDrawings] = useState(false);
   
   // Game States
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [timeLeft, setTimeLeft] = useState(30);
   const [score, setScore] = useState(0);
-  const [aiGuess, setAiGuess] = useState('Waiting for game to start...');
+  const [aiGuess, setAiGuess] = useState('Press Start to begin!');
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
   // Setup Canvas Dimensions & Brush Styling
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function GamePage() {
     ctx.lineWidth = 4;
   }, []);
 
-  // Game Countdown Timer Hook
+  // Countdown Timer Hook
   useEffect(() => {
     if (!isPlaying || timeLeft <= 0) {
       if (timeLeft === 0 && isPlaying) {
@@ -50,30 +51,82 @@ export default function GamePage() {
     return () => clearTimeout(timer);
   }, [isPlaying, timeLeft]);
 
+  // Automated AI Guessing Interval Loop
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = setInterval(() => {
+      // Only ping the API if the user has added new lines since the last check
+      if (hasNewDrawings && !isAiThinking) {
+        checkDrawingWithAI();
+      }
+    }, 4000); // Evaluates the canvas every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [isPlaying, hasNewDrawings, isAiThinking, currentPrompt]);
+
+  // The Core API Call Function
+  const checkDrawingWithAI = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    setIsAiThinking(true);
+    setAiGuess('AI is analyzing your sketch...');
+
+    try {
+      // Extract canvas pixels as a base64 PNG data URL
+      const dataUrl = canvas.toDataURL('image/png');
+
+      const response = await fetch('/api/guess', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataUrl, prompt: currentPrompt }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.match) {
+          endGame(true);
+        } else {
+          setAiGuess(`AI Thinks it looks like: "${data.prediction}" (Keep drawing!)`);
+          setHasNewDrawings(false); // Reset tracking until they sketch more
+        }
+      } else {
+        console.error('API Error:', data.error);
+      }
+    } catch (err) {
+      console.error('Network failure trying to contact AI route:', err);
+    } finally {
+      setIsAiThinking(false);
+    }
+  };
+
   // Start a Brand New Round
   const startGame = () => {
     clearCanvas();
     const randomPrompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
     setCurrentPrompt(randomPrompt);
     setTimeLeft(30);
+    setHasNewDrawings(false);
     setIsPlaying(true);
-    setAiGuess('Thinking...');
+    setAiGuess('Start sketching! AI will guess automatically...');
   };
 
   const endGame = (won: boolean) => {
     setIsPlaying(false);
     if (won) {
-      const pointsEarned = timeLeft * 10; // More points for speed
+      const pointsEarned = timeLeft * 10;
       setScore((prev) => prev + pointsEarned);
-      setAiGuess(`🎉 Correct! You drew a ${currentPrompt}! (+${pointsEarned} pts)`);
+      setAiGuess(`🎉 Correct! Match confirmed! (+${pointsEarned} pts)`);
     } else {
-      setAiGuess(`⏰ Time's up! Game over.`);
+      setAiGuess(`⏰ Time's up! The AI couldn't lock it down.`);
     }
   };
 
-  // Canvas Drawing Logic
+  // Canvas Drawing Coordinate Capturing
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isPlaying) return; // Prevent drawing if game hasn't started
+    if (!isPlaying) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -95,6 +148,7 @@ export default function GamePage() {
     const rect = canvas.getBoundingClientRect();
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
     ctx.stroke();
+    setHasNewDrawings(true); // Signal that the canvas state has changed
   };
 
   const stopDrawing = () => setIsDrawing(false);
@@ -105,18 +159,14 @@ export default function GamePage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  // Temporary function to simulate a correct guess for testing
-  const simulateAiMatch = () => {
-    if (isPlaying) endGame(true);
+    setHasNewDrawings(false);
   };
 
   return (
     <main className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-zinc-900 selection:bg-zinc-200">
       <div className="w-full max-w-md space-y-6">
         
-        {/* Top Header: Score & Timer */}
+        {/* Header Indicators */}
         <div className="flex justify-between items-center bg-white px-4 py-3 rounded-xl border border-zinc-200 shadow-xs">
           <div className="text-sm font-medium text-zinc-500">
             Score: <span className="text-zinc-900 font-bold font-mono">{score}</span>
@@ -126,7 +176,7 @@ export default function GamePage() {
           </div>
         </div>
 
-        {/* Prompt Card */}
+        {/* Word Directive Card */}
         <div className="text-center bg-zinc-900 text-zinc-50 py-6 rounded-2xl shadow-md space-y-1">
           <p className="text-xs tracking-wider uppercase text-zinc-400 font-semibold">Your Prompt</p>
           <h2 className="text-3xl font-extrabold tracking-tight">
@@ -134,7 +184,7 @@ export default function GamePage() {
           </h2>
         </div>
 
-        {/* Interactive Drawing Canvas */}
+        {/* Visual Matrix Sandbox (Canvas) */}
         <div className="bg-white border-2 border-zinc-200 rounded-2xl shadow-inner overflow-hidden aspect-square touch-none relative">
           {!isPlaying && (
             <div className="absolute inset-0 bg-zinc-900/5 backdrop-blur-xs flex flex-col items-center justify-center space-y-3">
@@ -156,19 +206,15 @@ export default function GamePage() {
           />
         </div>
 
-        {/* Bottom AI Prediction Status Box */}
-        <div className="bg-white p-4 rounded-xl border border-zinc-200 shadow-xs space-y-3">
-          <div className="text-xs font-mono text-zinc-400 uppercase tracking-wider">AI Live Prediction</div>
-          <div className="font-medium text-zinc-700">{aiGuess}</div>
-          
-          {isPlaying && (
-            <button
-              onClick={simulateAiMatch}
-              className="w-full text-center py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-600 border border-dashed border-zinc-200 hover:border-zinc-400 rounded-md transition-colors"
-            >
-              [Dev Option] Simulate AI guessing correctly
-            </button>
-          )}
+        {/* AI Output Box */}
+        <div className="bg-white p-4 rounded-xl border border-zinc-200 shadow-xs space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="text-xs font-mono text-zinc-400 uppercase tracking-wider">AI Live Prediction</div>
+            {isAiThinking && (
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+            )}
+          </div>
+          <div className="font-medium text-zinc-700 leading-normal">{aiGuess}</div>
         </div>
 
       </div>
