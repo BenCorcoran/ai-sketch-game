@@ -202,6 +202,9 @@ export default function GamePage() {
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
+            onTouchStart={startDrawingTouch}
+            onTouchMove={drawTouch}
+            onTouchEnd={stopDrawing}
             className={`w-full h-full ${isPlaying ? 'cursor-crosshair' : 'cursor-default'}`}
           />
         </div>
