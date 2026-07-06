@@ -138,6 +138,24 @@ export default function GamePage() {
     setIsDrawing(true);
   };
 
+  const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isPlaying) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Prevent mobile scrolling while drawing
+    e.preventDefault(); 
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0]; // Capture the first finger touching the glass
+    
+    ctx.beginPath();
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    setIsDrawing(true);
+  };
+
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
