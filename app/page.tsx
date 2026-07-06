@@ -168,7 +168,7 @@ export default function GamePage() {
     const rect = canvas.getBoundingClientRect();
     const touch = e.touches[0];
 
-    ctx.lineTo(touch.clientX - rect.left, touch.clientY - touch.top);
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
     ctx.stroke();
     setHasNewDrawings(true);
   };
