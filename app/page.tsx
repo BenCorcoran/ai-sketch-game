@@ -156,6 +156,23 @@ export default function GamePage() {
     setIsDrawing(true);
   };
 
+  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    e.preventDefault();
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - touch.top);
+    ctx.stroke();
+    setHasNewDrawings(true);
+  };
+
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
