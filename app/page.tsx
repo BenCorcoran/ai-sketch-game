@@ -144,13 +144,32 @@ export default function GamePage() {
 
   const endGame = (won: boolean) => {
     setIsPlaying(false);
+    let pointsEarned = 0;
+
     if (won) {
-      const pointsEarned = timeLeft * 10;
-      setScore((prev) => prev + pointsEarned);
+      pointsEarned = timeLeft * 10;
+      setMatchScore((prev) => prev + pointsEarned);
       setAiGuess(`🎉 Correct! Match confirmed! (+${pointsEarned} pts)`);
     } else {
-      setAiGuess(`⏰ Time's up! The AI couldn't lock it down.`);
+      setAiGuess(`⏰ Time's up! Moving to next round.`);
     }
+
+    // Step to the next round if under 5
+    if (roundNumber < 5) {
+      setRoundNumber((prev) => prev + 1);
+    } else {
+      // End of game match sequence
+      setRoundNumber(6); // 6 will represent our "Match Over summary screen"
+    }
+  };
+
+  // Helper reset to start a brand new 5-game match from scratch
+  const resetEntireMatch = () => {
+    setMatchScore(0);
+    setRoundNumber(1);
+    setUsedPrompts([]);
+    clearCanvas();
+    setAiGuess('New match started! Press Start to play.');
   };
 
   // Canvas Drawing Coordinate Capturing
