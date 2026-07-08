@@ -112,9 +112,21 @@ export default function GamePage() {
   // Start a Brand New Round
   const startGame = () => {
     clearCanvas();
-    const randomPrompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+    
+    // 1. Grab the specific word list for the chosen difficulty
+    const currentBank = PROMPT_BANKS[difficulty];
+    
+    // 2. Filter out the current prompt to ensure no back-to-back duplicates
+    const availablePrompts = currentBank.filter(p => p !== currentPrompt);
+    const randomPrompt = availablePrompts[Math.floor(Math.random() * availablePrompts.length)];
+    
+    // 3. Set the dynamic clock based on difficulty tier
+    let initialTime = 30;
+    if (difficulty === 'medium') initialTime = 60;
+    if (difficulty === 'hard') initialTime = 120;
+
     setCurrentPrompt(randomPrompt);
-    setTimeLeft(30);
+    setTimeLeft(initialTime);
     setHasNewDrawings(false);
     setIsPlaying(true);
     setAiGuess('Start sketching! AI will guess automatically...');
