@@ -2,7 +2,13 @@
 
 import { useRef, useState, useEffect } from 'react';
 
-const PROMPTS = ['Tree', 'House', 'Car', 'Apple', 'Bicycle', 'Sword', 'Cloud', 'Smile'];
+const PROMPT_BANKS = {
+  easy: ['Tree', 'House', 'Apple', 'Cloud', 'Smile', 'Sun', 'Cat', 'Hat'],
+  medium: ['Bicycle', 'Sword', 'Car', 'Airplane', 'Guitar', 'Laptop', 'Spider', 'Bridge'],
+  hard: ['Eiffel Tower', 'Microscope', 'DNA Strand', 'Submarine', 'Rollercoaster', 'Helicopter']
+};
+
+type Difficulty = 'easy' | 'medium' | 'hard';
 
 export default function GamePage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -16,6 +22,7 @@ export default function GamePage() {
   const [score, setScore] = useState(0);
   const [aiGuess, setAiGuess] = useState('Press Start to begin!');
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
 
   // Setup Canvas Dimensions & Brush Styling
   useEffect(() => {
