@@ -112,18 +112,25 @@ export default function GamePage() {
     }
   };
 
-  // Start a Brand New Round
   const startGame = () => {
     clearCanvas();
     
-    // 1. Grab the specific word list for the chosen difficulty
     const currentBank = PROMPT_BANKS[difficulty];
     
-    // 2. Filter out the current prompt to ensure no back-to-back duplicates
-    const availablePrompts = currentBank.filter(p => p !== currentPrompt);
+    // Filter out ANY words already used in this match sequence
+    let availablePrompts = currentBank.filter(word => !usedPrompts.includes(word));
+    
+    // Safety fallback: if they somehow run through all words, reset the pool
+    if (availablePrompts.length === 0) {
+      availablePrompts = currentBank;
+      setUsedPrompts([]);
+    }
+    
     const randomPrompt = availablePrompts[Math.floor(Math.random() * availablePrompts.length)];
     
-    // 3. Set the dynamic clock based on difficulty tier
+    // Record this word as used so it won't appear again this match
+    setUsedPrompts((prev) => [...prev, randomPrompt]);
+
     let initialTime = 30;
     if (difficulty === 'medium') initialTime = 60;
     if (difficulty === 'hard') initialTime = 120;
