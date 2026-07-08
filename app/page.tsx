@@ -230,6 +230,25 @@ export default function GamePage() {
           </div>
         </div>
 
+        {/* Difficulty Selector */}
+        {!isPlaying && (
+          <div className="grid grid-cols-3 gap-2 bg-white p-1 rounded-xl border border-zinc-200 shadow-xs text-sm font-medium">
+            {(['easy', 'medium', 'hard'] as Difficulty[]).map((tier) => (
+              <button
+                key={tier}
+                onClick={() => setDifficulty(tier)}
+                className={`py-1.5 capitalize rounded-lg transition-all cursor-pointer text-center ${
+                  difficulty === tier
+                    ? 'bg-zinc-950 text-white shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
+                }`}
+              >
+                {tier}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Word Directive Card */}
         <div className="text-center bg-zinc-900 text-zinc-50 py-6 rounded-2xl shadow-md space-y-1">
           <p className="text-xs tracking-wider uppercase text-zinc-400 font-semibold">Your Prompt</p>
