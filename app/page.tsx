@@ -252,11 +252,16 @@ export default function GamePage() {
         {/* Header Indicators */}
         <div className="flex justify-between items-center bg-white px-4 py-3 rounded-xl border border-zinc-200 shadow-xs">
           <div className="text-sm font-medium text-zinc-500">
-            Score: <span className="text-zinc-900 font-bold font-mono">{score}</span>
+            Total Score: <span className="text-zinc-900 font-bold font-mono">{matchScore}</span>
           </div>
           <div className="text-sm font-medium text-zinc-500">
-            Time Left: <span className={`font-bold font-mono ${timeLeft <= 10 ? 'text-rose-600 animate-pulse' : 'text-zinc-900'}`}>{timeLeft}s</span>
+            Round: <span className="text-zinc-900 font-bold font-mono">{roundNumber > 5 ? '5' : roundNumber}/5</span>
           </div>
+          {isPlaying && (
+            <div className="text-sm font-medium text-zinc-500">
+              Time: <span className={`font-bold font-mono ${timeLeft <= 10 ? 'text-rose-600 animate-pulse' : 'text-zinc-900'}`}>{timeLeft}s</span>
+            </div>
+          )}
         </div>
 
         {/* Difficulty Selector */}
@@ -286,29 +291,48 @@ export default function GamePage() {
           </h2>
         </div>
 
-        {/* Visual Matrix Sandbox (Canvas) */}
+        {/* Visual Matrix Sandbox (Canvas or Summary Screen) */}
         <div className="bg-white border-2 border-zinc-200 rounded-2xl shadow-inner overflow-hidden aspect-square touch-none relative">
-          {!isPlaying && (
-            <div className="absolute inset-0 bg-zinc-900/5 backdrop-blur-xs flex flex-col items-center justify-center space-y-3">
+          {roundNumber === 6 ? (
+            <div className="absolute inset-0 bg-zinc-950 flex flex-col items-center justify-center p-6 text-center space-y-4 text-white">
+              <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">Match Completed</span>
+              <h3 className="text-4xl font-black tracking-tight text-amber-400 font-mono">{matchScore} pts</h3>
+              <p className="text-sm text-zinc-400 max-w-xs leading-normal">
+                Excellent running! This is your score to beat. Try shifting difficulties to challenge your baseline.
+              </p>
               <button
-                onClick={startGame}
-                className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-md transition-all active:scale-98 cursor-pointer"
+                onClick={resetEntireMatch}
+                className="px-5 py-2.5 bg-white hover:bg-zinc-100 text-zinc-950 text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
               >
-                {score > 0 ? 'Play Next Round' : 'Start Game'}
+                Play New Match
               </button>
             </div>
+          ) : (
+            !isPlaying && (
+              <div className="absolute inset-0 bg-zinc-900/5 backdrop-blur-xs flex flex-col items-center justify-center space-y-3">
+                <button
+                  onClick={startGame}
+                  className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-md transition-all active:scale-98 cursor-pointer"
+                >
+                  {usedPrompts.length > 0 ? `Start Round ${roundNumber}` : 'Start Match'}
+                </button>
+              </div>
+            )
           )}
-          <canvas
-            ref={canvasRef}
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-            onTouchStart={startDrawingTouch}
-            onTouchMove={drawTouch}
-            onTouchEnd={stopDrawing}
-            className={`w-full h-full ${isPlaying ? 'cursor-crosshair' : 'cursor-default'}`}
-          />
+          
+          {roundNumber <= 5 && (
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              onTouchStart={startDrawingTouch}
+              onTouchMove={drawTouch}
+              onTouchEnd={stopDrawing}
+              className={`w-full h-full ${isPlaying ? 'cursor-crosshair' : 'cursor-default'}`}
+            />
+          )}
         </div>
 
         {/* AI Output Box */}
