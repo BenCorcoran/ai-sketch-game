@@ -23,6 +23,9 @@ export default function GamePage() {
   const [aiGuess, setAiGuess] = useState('Press Start to begin!');
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [roundNumber, setRoundNumber] = useState(1);
+  const [matchScore, setMatchScore] = useState(0);
+  const [usedPrompts, setUsedPrompts] = useState<string[]>([]);
 
   // Setup Canvas Dimensions & Brush Styling
   useEffect(() => {
