@@ -26,6 +26,7 @@ export default function GamePage() {
   const [roundNumber, setRoundNumber] = useState(1);
   const [matchScore, setMatchScore] = useState(0);
   const [usedPrompts, setUsedPrompts] = useState<string[]>([]);
+  const [animateScore, setAnimateScore] = useState(false);
 
   // Setup Canvas Dimensions & Brush Styling
   useEffect(() => {
@@ -150,6 +151,9 @@ export default function GamePage() {
       pointsEarned = timeLeft * 10;
       setMatchScore((prev) => prev + pointsEarned);
       setAiGuess(`🎉 Correct! Match confirmed! (+${pointsEarned} pts)`);
+      // Trigger temporary score flash animation
+      setAnimateScore(true);
+      setTimeout(() => setAnimateScore(false), 300); // matches transition time
     } else {
       setAiGuess(`⏰ Time's up! Moving to next round.`);
     }
@@ -252,7 +256,7 @@ export default function GamePage() {
         {/* Header Indicators */}
         <div className="flex justify-between items-center bg-white px-4 py-3 rounded-xl border border-zinc-200 shadow-xs">
           <div className="text-sm font-medium text-zinc-500">
-            Total Score: <span className="text-zinc-900 font-bold font-mono">{matchScore}</span>
+            Total Score: <span className={`text-zinc-900 font-bold font-mono inline-block transition-transform duration-300 ${animateScore ? 'scale-135 text-emerald-600 font-extrabold' : 'scale-100'}`}>{matchScore}</span>
           </div>
           <div className="text-sm font-medium text-zinc-500">
             Round: <span className="text-zinc-900 font-bold font-mono">{roundNumber > 5 ? '5' : roundNumber}/5</span>
