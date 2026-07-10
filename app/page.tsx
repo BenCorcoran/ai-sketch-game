@@ -259,7 +259,7 @@ export default function GamePage() {
           </div>
           {isPlaying && (
             <div className="text-sm font-medium text-zinc-500">
-              Time: <span className={`font-bold font-mono ${timeLeft <= 10 ? 'text-rose-600 animate-pulse' : 'text-zinc-900'}`}>{timeLeft}s</span>
+              Time: <span className={`font-mono font-bold transition-all ${timeLeft <= 10 ? 'text-rose-600 scale-110 inline-block animate-pulse' : 'text-zinc-900'}`}>{timeLeft}s</span>
             </div>
           )}
         </div>
