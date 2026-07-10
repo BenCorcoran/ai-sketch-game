@@ -271,7 +271,7 @@ export default function GamePage() {
               <button
                 key={tier}
                 onClick={() => setDifficulty(tier)}
-                className={`py-1.5 capitalize rounded-lg transition-all cursor-pointer text-center ${
+                className={`py-1.5 capitalize rounded-lg transition-all duration-200 ease-out active:scale-95 cursor-pointer text-center ${
                   difficulty === tier
                     ? 'bg-zinc-950 text-white shadow-xs'
                     : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
