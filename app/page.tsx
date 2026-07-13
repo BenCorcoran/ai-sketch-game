@@ -9,6 +9,8 @@ const PROMPT_BANKS = {
 };
 
 type Difficulty = 'easy' | 'medium' | 'hard';
+type CanvasMode = 'classic' | 'pixel';
+const PIXEL_GRID_SIZE = 32;
 
 export default function GamePage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -27,6 +29,7 @@ export default function GamePage() {
   const [matchScore, setMatchScore] = useState(0);
   const [usedPrompts, setUsedPrompts] = useState<string[]>([]);
   const [animateScore, setAnimateScore] = useState(false);
+  const [canvasMode, setCanvasMode] = useState<CanvasMode>('classic');
 
   // Setup Canvas Dimensions & Brush Styling
   useEffect(() => {
