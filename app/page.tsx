@@ -13,6 +13,30 @@ type CanvasMode = 'classic' | 'pixel';
 const PIXEL_GRID_SIZE = 32;
 
 export default function GamePage() {
+
+  const drawPixelBlock = (clientX: number, clientY: number, rect: DOMRect, ctx: CanvasRenderingContext2D) => {
+    // 1. Find relative mouse position inside the canvas bounding box
+    const relativeX = clientX - rect.left;
+    const relativeY = clientY - rect.top;
+
+    // 2. Calculate the size of each individual virtual pixel block
+    const blockWidth = rect.width / PIXEL_GRID_SIZE;
+    const blockHeight = rect.height / PIXEL_GRID_SIZE;
+
+    // 3. Snap coordinates to the nearest grid cell row and column
+    const gridX = Math.floor(relativeX / blockWidth);
+    const gridY = Math.floor(relativeY / blockHeight);
+
+    // 4. Paint that single grid block black
+    ctx.fillStyle = '#18181b'; // zinc-900
+    ctx.fillRect(
+      gridX * blockWidth, 
+      gridY * blockHeight, 
+      blockWidth + 0.5, // +0.5 prevents tiny gaps between blocks when drawing fast
+      blockHeight + 0.5
+    );
+  };
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasNewDrawings, setHasNewDrawings] = useState(false);
