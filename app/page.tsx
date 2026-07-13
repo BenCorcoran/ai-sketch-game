@@ -212,9 +212,14 @@ export default function GamePage() {
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
     setIsDrawing(true);
+
+    if (canvasMode === 'pixel') {
+      drawPixelBlock(e.clientX, e.clientY, rect, ctx);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
   };
 
   const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
@@ -224,15 +229,17 @@ export default function GamePage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Prevent mobile scrolling while drawing
-    e.preventDefault(); 
-
+    e.preventDefault();
     const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0]; // Capture the first finger touching the glass
-    
-    ctx.beginPath();
-    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    const touch = e.touches[0];
     setIsDrawing(true);
+
+    if (canvasMode === 'pixel') {
+      drawPixelBlock(touch.clientX, touch.clientY, rect, ctx);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    }
   };
 
   const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
@@ -243,13 +250,16 @@ export default function GamePage() {
     if (!ctx) return;
 
     e.preventDefault();
-
     const rect = canvas.getBoundingClientRect();
     const touch = e.touches[0];
-
-    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
-    ctx.stroke();
     setHasNewDrawings(true);
+
+    if (canvasMode === 'pixel') {
+      drawPixelBlock(touch.clientX, touch.clientY, rect, ctx);
+    } else {
+      ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+      ctx.stroke();
+    }
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -260,9 +270,14 @@ export default function GamePage() {
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-    setHasNewDrawings(true); // Signal that the canvas state has changed
+    setHasNewDrawings(true);
+
+    if (canvasMode === 'pixel') {
+      drawPixelBlock(e.clientX, e.clientY, rect, ctx);
+    } else {
+      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      ctx.stroke();
+    }
   };
 
   const stopDrawing = () => setIsDrawing(false);
