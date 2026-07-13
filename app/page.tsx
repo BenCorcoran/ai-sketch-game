@@ -329,6 +329,24 @@ export default function GamePage() {
           </div>
         )}
 
+        {/* Canvas Style Switcher */}
+        {!isPlaying && (
+          <div className="flex justify-center space-x-6 text-xs font-semibold tracking-wide uppercase text-zinc-400">
+            <button
+              onClick={() => setCanvasMode('classic')}
+              className={`pb-1 transition-colors border-b-2 cursor-pointer ${canvasMode === 'classic' ? 'text-zinc-900 border-zinc-900' : 'border-transparent hover:text-zinc-600'}`}
+            >
+              Classic Ink
+            </button>
+            <button
+              onClick={() => setCanvasMode('pixel')}
+              className={`pb-1 transition-colors border-b-2 cursor-pointer ${canvasMode === 'pixel' ? 'text-zinc-900 border-zinc-900' : 'border-transparent hover:text-zinc-600'}`}
+            >
+              Retro Pixel
+            </button>
+          </div>
+        )}
+
         {/* Word Directive Card */}
         <div className="text-center bg-zinc-900 text-zinc-50 py-6 rounded-2xl shadow-md space-y-1">
           <p className="text-xs tracking-wider uppercase text-zinc-400 font-semibold">Your Prompt</p>
