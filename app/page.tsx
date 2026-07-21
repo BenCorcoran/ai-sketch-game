@@ -295,17 +295,17 @@ export default function GamePage() {
     <main className="min-h-screen bg-radial from-zinc-900 to-black flex flex-col items-center justify-center p-6 text-zinc-100 selection:bg-zinc-800 antialiased">
       <div className="w-full max-w-md space-y-6">
         
-        {/* Header Indicators */}
-        <div className="flex justify-between items-center bg-white px-4 py-3 rounded-xl border border-zinc-200 shadow-xs">
-          <div className="text-sm font-medium text-zinc-500">
-            Total Score: <span className={`text-zinc-900 font-bold font-mono inline-block transition-transform duration-300 ${animateScore ? 'scale-135 text-emerald-600 font-extrabold' : 'scale-100'}`}>{matchScore}</span>
+        {/* Neon Glass Header Indicators */}
+        <div className="flex justify-between items-center bg-zinc-900/60 backdrop-blur-md px-5 py-3 rounded-xl border border-zinc-800/80 shadow-lg text-xs tracking-wider uppercase">
+          <div className="font-medium text-zinc-400">
+            Score: <span className={`font-bold font-mono text-base inline-block transition-all duration-300 ${animateScore ? 'text-emerald-400 scale-125 font-black drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'text-zinc-100'}`}>{matchScore}</span>
           </div>
-          <div className="text-sm font-medium text-zinc-500">
-            Round: <span className="text-zinc-900 font-bold font-mono">{roundNumber > 5 ? '5' : roundNumber}/5</span>
+          <div className="font-medium text-zinc-400">
+            Round: <span className="text-zinc-100 font-bold font-mono text-sm bg-zinc-800 px-2 py-0.5 rounded-md border border-zinc-700">{roundNumber > 5 ? '5' : roundNumber}/5</span>
           </div>
           {isPlaying && (
-            <div className="text-sm font-medium text-zinc-500">
-              Time: <span className={`font-mono font-bold transition-all ${timeLeft <= 10 ? 'text-rose-600 scale-110 inline-block animate-pulse' : 'text-zinc-900'}`}>{timeLeft}s</span>
+            <div className="font-medium text-zinc-400">
+              Time: <span className={`font-mono font-bold text-sm transition-all ${timeLeft <= 10 ? 'text-rose-500 scale-110 inline-block animate-pulse drop-shadow-[0_0_6px_rgba(244,63,94,0.6)]' : 'text-zinc-100'}`}>{timeLeft}s</span>
             </div>
           )}
         </div>
@@ -347,11 +347,12 @@ export default function GamePage() {
           </div>
         )}
 
-        {/* Word Directive Card */}
-        <div className="text-center bg-zinc-900 text-zinc-50 py-6 rounded-2xl shadow-md space-y-1">
-          <p className="text-xs tracking-wider uppercase text-zinc-400 font-semibold">Your Prompt</p>
-          <h2 className="text-3xl font-extrabold tracking-tight">
-            {isPlaying ? currentPrompt : 'Ready?'}
+        {/* Dynamic Prompt Dashboard Deck */}
+        <div className="text-center bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md py-5 rounded-2xl shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-700 to-transparent animate-pulse" />
+          <p className="text-[10px] tracking-widest uppercase text-zinc-500 font-bold">Current Target Mission</p>
+          <h2 className={`text-3xl font-black tracking-tight mt-1 transition-all duration-300 ${isPlaying ? 'text-zinc-100 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]' : 'text-zinc-600'}`}>
+            {isPlaying ? currentPrompt : 'System Ready'}
           </h2>
         </div>
 
