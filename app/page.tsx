@@ -312,15 +312,15 @@ export default function GamePage() {
 
         {/* Difficulty Selector */}
         {!isPlaying && (
-          <div className="grid grid-cols-3 gap-2 bg-white p-1 rounded-xl border border-zinc-200 shadow-xs text-sm font-medium">
+          <div className="grid grid-cols-3 gap-2 bg-zinc-950/80 p-1 rounded-xl border border-zinc-800 shadow-xl text-xs font-semibold uppercase tracking-wider">
             {(['easy', 'medium', 'hard'] as Difficulty[]).map((tier) => (
               <button
                 key={tier}
                 onClick={() => setDifficulty(tier)}
-                className={`py-1.5 capitalize rounded-lg transition-all duration-200 ease-out active:scale-95 cursor-pointer text-center ${
+                className={`py-2 rounded-lg transition-all duration-200 ease-out active:scale-95 cursor-pointer text-center ${
                   difficulty === tier
-                    ? 'bg-zinc-950 text-white shadow-xs'
-                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
+                    ? 'bg-zinc-100 text-zinc-950 font-bold shadow-md shadow-white/5'
+                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50'
                 }`}
               >
                 {tier}
@@ -405,14 +405,25 @@ export default function GamePage() {
         </div>
 
         {/* AI Output Box */}
-        <div className="bg-white p-4 rounded-xl border border-zinc-200 shadow-xs space-y-2">
-          <div className="flex justify-between items-center">
-            <div className="text-xs font-mono text-zinc-400 uppercase tracking-wider">AI Live Prediction</div>
+        <div className={`p-4 rounded-xl border transition-all duration-300 bg-zinc-950/50 backdrop-blur-sm ${
+          isAiThinking 
+            ? 'border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]' 
+            : aiGuess.includes('🎉') 
+              ? 'border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+              : 'border-zinc-800'
+        }`}>
+          <div className="flex justify-between items-center mb-1">
+            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Neural Link Predictions</div>
             {isAiThinking && (
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <div className="flex items-center space-x-1.5">
+                <span className="text-[10px] text-amber-500 font-mono font-bold uppercase animate-pulse">Analyzing</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+              </div>
             )}
           </div>
-          <div className="font-medium text-zinc-700 leading-normal">{aiGuess}</div>
+          <div className={`font-semibold tracking-wide text-sm ${
+            aiGuess.includes('🎉') ? 'text-emerald-400' : isAiThinking ? 'text-amber-400' : 'text-zinc-300'
+          }`}>{aiGuess}</div>
         </div>
 
       </div>
