@@ -12,6 +12,53 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 type CanvasMode = 'classic' | 'pixel';
 const PIXEL_GRID_SIZE = 32;
 
+// Web Audio API Synthesizer
+const playSound = (type: 'win' | 'tick' | 'start' | 'lose') => {
+  if (typeof window === 'undefined') return;
+  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  const now = ctx.currentTime;
+
+  if (type === 'tick') {
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, now);
+    gain.gain.setValueAtTime(0.05, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    osc.start(now);
+    osc.stop(now + 0.05);
+  } else if (type === 'win') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.setValueAtTime(554.37, now + 0.1); // C#
+    osc.frequency.setValueAtTime(659.25, now + 0.2); // E
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.start(now);
+    osc.stop(now + 0.4);
+  } else if (type === 'start') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  } else if (type === 'lose') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+};
+
 export default function GamePage() {
 
   const drawPixelBlock = (clientX: number, clientY: number, rect: DOMRect, ctx: CanvasRenderingContext2D) => {
@@ -54,6 +101,7 @@ export default function GamePage() {
   const [usedPrompts, setUsedPrompts] = useState<string[]>([]);
   const [animateScore, setAnimateScore] = useState(false);
   const [canvasMode, setCanvasMode] = useState<CanvasMode>('classic');
+  const [highScores, setHighScores] = useState<number[]>([]);
 
   // Setup Canvas Dimensions & Brush Styling
   useEffect(() => {
@@ -73,6 +121,17 @@ export default function GamePage() {
     ctx.lineWidth = 4;
   }, []);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('draw_ai_highscores');
+    if (saved) {
+      try {
+        setHighScores(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse high scores', e);
+      }
+    }
+  }, []);
+
   // Countdown Timer Hook
   useEffect(() => {
     if (!isPlaying || timeLeft <= 0) {
@@ -83,7 +142,14 @@ export default function GamePage() {
     }
 
     const timer = setTimeout(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        const nextTime = prev - 1;
+        // 🔊 Sound trigger: Play tick when 6 seconds or less remain
+        if (nextTime <= 6 && nextTime > 0) {
+          playSound('tick');
+        }
+        return nextTime;
+      });
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -141,6 +207,7 @@ export default function GamePage() {
   };
 
   const startGame = () => {
+    playSound('start');
     clearCanvas();
     
     const currentBank = PROMPT_BANKS[difficulty];
@@ -175,6 +242,7 @@ export default function GamePage() {
     let pointsEarned = 0;
 
     if (won) {
+      playSound('win');
       pointsEarned = timeLeft * 10;
       setMatchScore((prev) => prev + pointsEarned);
       setAiGuess(`🎉 Correct! Match confirmed! (+${pointsEarned} pts)`);
@@ -182,6 +250,7 @@ export default function GamePage() {
       setAnimateScore(true);
       setTimeout(() => setAnimateScore(false), 300); // matches transition time
     } else {
+      playSound('lose');
       setAiGuess(`⏰ Time's up! Moving to next round.`);
     }
 
@@ -190,7 +259,13 @@ export default function GamePage() {
       setRoundNumber((prev) => prev + 1);
     } else {
       // End of game match sequence
-      setRoundNumber(6); // 6 will represent our "Match Over summary screen"
+      setRoundNumber(6);
+
+      setHighScores((prev) => {
+        const updated = [...prev, matchScore].sort((a, b) => b - a).slice(0, 3);
+        localStorage.setItem('draw_ai_highscores', JSON.stringify(updated));
+        return updated;
+      });
     }
   };
 
@@ -310,7 +385,16 @@ export default function GamePage() {
           )}
         </div>
 
-        {/* Difficulty Selector */}
+        {/* Dynamic Prompt Dashboard Deck */}
+        <div className="text-center bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md py-5 rounded-2xl shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-700 to-transparent animate-pulse" />
+          <p className="text-[10px] tracking-widest uppercase text-zinc-500 font-bold">Current Target Mission</p>
+          <h2 className={`text-3xl font-black tracking-tight mt-1 transition-all duration-300 ${isPlaying ? 'text-zinc-100 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]' : 'text-zinc-600'}`}>
+            {isPlaying ? currentPrompt : 'System Ready'}
+          </h2>
+        </div>
+
+        {/* High-Fi Difficulty Selector */}
         {!isPlaying && (
           <div className="grid grid-cols-3 gap-2 bg-zinc-950/80 p-1 rounded-xl border border-zinc-800 shadow-xl text-xs font-semibold uppercase tracking-wider">
             {(['easy', 'medium', 'hard'] as Difficulty[]).map((tier) => (
@@ -334,54 +418,59 @@ export default function GamePage() {
           <div className="flex justify-center space-x-6 text-xs font-semibold tracking-wide uppercase text-zinc-400">
             <button
               onClick={() => setCanvasMode('classic')}
-              className={`pb-1 transition-colors border-b-2 cursor-pointer ${canvasMode === 'classic' ? 'text-zinc-900 border-zinc-900' : 'border-transparent hover:text-zinc-600'}`}
+              className={`pb-1 transition-colors border-b-2 cursor-pointer ${canvasMode === 'classic' ? 'text-zinc-100 border-zinc-100' : 'border-transparent hover:text-zinc-300'}`}
             >
               Classic Ink
             </button>
             <button
               onClick={() => setCanvasMode('pixel')}
-              className={`pb-1 transition-colors border-b-2 cursor-pointer ${canvasMode === 'pixel' ? 'text-zinc-900 border-zinc-900' : 'border-transparent hover:text-zinc-600'}`}
+              className={`pb-1 transition-colors border-b-2 cursor-pointer ${canvasMode === 'pixel' ? 'text-zinc-100 border-zinc-100' : 'border-transparent hover:text-zinc-300'}`}
             >
               Retro Pixel
             </button>
           </div>
         )}
 
-        {/* Dynamic Prompt Dashboard Deck */}
-        <div className="text-center bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md py-5 rounded-2xl shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-700 to-transparent animate-pulse" />
-          <p className="text-[10px] tracking-widest uppercase text-zinc-500 font-bold">Current Target Mission</p>
-          <h2 className={`text-3xl font-black tracking-tight mt-1 transition-all duration-300 ${isPlaying ? 'text-zinc-100 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]' : 'text-zinc-600'}`}>
-            {isPlaying ? currentPrompt : 'System Ready'}
-          </h2>
-        </div>
-
-        {/* Visual Matrix Sandbox (Canvas or Summary Screen) */}
+        {/* Interactive Arcade Screen Canvas Wrapper */}
         <div className={`bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden aspect-square touch-none relative transition-all duration-500 ${
           isPlaying 
             ? 'shadow-[0_0_25px_rgba(24,24,27,0.8)] border-zinc-700' 
             : 'shadow-black'
         }`}>
           {roundNumber === 6 ? (
-            <div className="absolute inset-0 bg-zinc-950 flex flex-col items-center justify-center p-6 text-center space-y-4 text-white">
-              <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">Match Completed</span>
-              <h3 className="text-4xl font-black tracking-tight text-amber-400 font-mono">{matchScore} pts</h3>
-              <p className="text-sm text-zinc-400 max-w-xs leading-normal">
-                Excellent running! This is your score to beat. Try shifting difficulties to challenge your baseline.
+            <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-4 text-white z-10">
+              <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">Match Completed</span>
+              <h3 className="text-4xl font-black tracking-tight text-emerald-400 font-mono drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]">{matchScore} pts</h3>
+              <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+                Match summary recorded. Compare your final score against your top historical records below!
               </p>
+
+              {/* High Score Leaderboard Panel */}
+              {highScores.length > 0 && (
+                <div className="w-full max-w-xs bg-zinc-900/80 p-3 rounded-xl border border-zinc-800 text-left space-y-1.5 my-2">
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold mb-1">Personal Best Records</div>
+                  {highScores.map((scoreItem, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs font-mono px-2 py-1 rounded bg-zinc-950/50 border border-zinc-800/50">
+                      <span className="text-zinc-500">#{idx + 1} Record</span>
+                      <span className="text-emerald-400 font-bold">{scoreItem} pts</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <button
                 onClick={resetEntireMatch}
-                className="px-5 py-2.5 bg-white hover:bg-zinc-100 text-zinc-950 text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+                className="px-6 py-2.5 bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer"
               >
                 Play New Match
               </button>
             </div>
           ) : (
             !isPlaying && (
-              <div className="absolute inset-0 bg-zinc-900/5 backdrop-blur-xs flex flex-col items-center justify-center space-y-3">
+              <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-xs flex flex-col items-center justify-center space-y-3 z-10">
                 <button
                   onClick={startGame}
-                  className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-md transition-all active:scale-98 cursor-pointer"
+                  className="px-6 py-3 bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-xs uppercase tracking-widest rounded-xl shadow-xl transition-all active:scale-95 cursor-pointer"
                 >
                   {usedPrompts.length > 0 ? `Start Round ${roundNumber}` : 'Start Match'}
                 </button>
@@ -404,7 +493,7 @@ export default function GamePage() {
           )}
         </div>
 
-        {/* AI Output Box */}
+        {/* Cyberpunk AI Analytics Feedback Box */}
         <div className={`p-4 rounded-xl border transition-all duration-300 bg-zinc-950/50 backdrop-blur-sm ${
           isAiThinking 
             ? 'border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]' 
