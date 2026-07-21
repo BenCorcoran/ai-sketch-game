@@ -28,7 +28,7 @@ export default function GamePage() {
     const gridY = Math.floor(relativeY / blockHeight);
 
     // 4. Paint that single grid block black
-    ctx.fillStyle = '#18181b'; // zinc-900
+    ctx.fillStyle = '#f4f4f5'; // zinc-100
     ctx.fillRect(
       gridX * blockWidth, 
       gridY * blockHeight, 
@@ -69,7 +69,7 @@ export default function GamePage() {
 
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#18181b'; // zinc-900
+    ctx.strokeStyle = '#f4f4f5'; // zinc-100
     ctx.lineWidth = 4;
   }, []);
 
@@ -292,7 +292,7 @@ export default function GamePage() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-zinc-900 selection:bg-zinc-200">
+    <main className="min-h-screen bg-radial from-zinc-900 to-black flex flex-col items-center justify-center p-6 text-zinc-100 selection:bg-zinc-800 antialiased">
       <div className="w-full max-w-md space-y-6">
         
         {/* Header Indicators */}
@@ -356,7 +356,11 @@ export default function GamePage() {
         </div>
 
         {/* Visual Matrix Sandbox (Canvas or Summary Screen) */}
-        <div className="bg-white border-2 border-zinc-200 rounded-2xl shadow-inner overflow-hidden aspect-square touch-none relative">
+        <div className={`bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden aspect-square touch-none relative transition-all duration-500 ${
+          isPlaying 
+            ? 'shadow-[0_0_25px_rgba(24,24,27,0.8)] border-zinc-700' 
+            : 'shadow-black'
+        }`}>
           {roundNumber === 6 ? (
             <div className="absolute inset-0 bg-zinc-950 flex flex-col items-center justify-center p-6 text-center space-y-4 text-white">
               <span className="text-xs font-mono uppercase tracking-widest text-zinc-400">Match Completed</span>
